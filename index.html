@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+  <!-- Based on https://trackingjs.com/examples/face_camera.html -->
+  
+  <meta charset="utf-8">
+  <title>Program that uses tracking.js to track face with camera</title>
+
+  <!-- Must download trackingjs files from https://trackingjs.com and put them where these 'script src=' statements will find them. -->
+  <script src="./tracking.js-master/build/tracking-min.js"></script>
+  <script src="./tracking.js-master/build/data/face-min.js"></script>
+
+  <style>
+  video, canvas {
+    margin-left: 230px;
+    margin-top: 120px;
+    position: absolute;
+  }
+  </style>
+
+</head>
+<body>
+  <div class="demo-title">
+    <p><a href="http://trackingjs.com" target="_parent">tracking.js</a> － get user's webcam and detect faces</p>
+  </div>
+
+   <div id="result">
+          (no data yet)
+    </div>
+
+  <div class="demo-frame">
+    <div class="demo-container">
+      <video id="video" width="320" height="240" preload autoplay loop muted></video>
+      <canvas id="canvas" width="320" height="240"></canvas>
+    </div>
+  </div>
+
+  <br>
+
+  <div id = "literallyNothing"> </div>
+
+  <canvas id="drawZone" style="border:1px solid #000000; margin-top: 0px; margin-left: 0px;">
+
+  </canvas>
+
+  <script>
+  /*
+   * Simple program that uses trackingjs
+   *
+   * Must run on a remote server, and access via https not http.
+   * Must download trackingjs files from https://trackingjs.com and put them where above 'script src=' statements will find them.
+   * Currently works on Chrome, but not on Safari.
+   */
+
+    var faceX;
+    var faceY;
+
+    window.onload = function() {
+      var video = document.getElementById('video');
+      var canvas = document.getElementById('canvas');
+      var context = canvas.getContext('2d');
+      var tracker = new tracking.ObjectTracker('face');
+      tracker.setInitialScale(4);
+      tracker.setStepSize(2);
+      tracker.setEdgesDensity(0.1);
+      tracking.track('#video', tracker, { camera: true });
+      tracker.on('track', function(event) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        event.data.forEach(function(rect) {
+          context.strokeStyle = '#a64ceb';
+          context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+          context.font = '11px Helvetica';
+          context.fillStyle = "#fff";
+          context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
+          context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+          faceX = rect.x;
+          faceY = rect.y;
+          drawBackground();
+          console.log("We out here");
+	     document.getElementById("result").innerHTML = "Face at " + (rect.x + rect.width/2) + ", " + (rect.y + rect.height/2)});});
+
+
+    };
+
+
+    function doit (event) {
+      // Show coordinates
+      //document.getElementById("showcoords").innerHTML =
+        //"Mouse down at " + event.clientX + ", " + event.clientY;
+                 
+      // Redraw, moving the red circle to match mouse location
+      drawBackground ();
+      var c = document.getElementById ("drawZone");
+      var gc = c.getContext("2d");
+      gc.fillStyle = "#FF0000";
+      gc.beginPath();
+      gc.arc (event.clientX, event.clientY, 20, 0, 2.*Math.PI);
+      gc.fill();
+
+    }
+
+    // Just a common code fragment, not a genuine repaint callback,
+    // redraws the non-changeable stuff
+    function drawBackground () {
+      var c = document.getElementById ("drawZone");
+      var gc = c.getContext("2d");
+
+      // Grey background
+      gc.fillStyle = "#EEEEEE";
+      gc.fillRect (0, 0, c.width, c.height);
+
+      gc.fillStyle = "#000000"
+      gc.fillRect(faceX, faceY, 100, 100);
+
+    }
+
+
+  </script>
+
+</body>
+</html>
