@@ -12,13 +12,15 @@
   <script src="./tools.js"></script>
   <script src="https://download.affectiva.com/js/3.1/affdex.js"/>></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.2/lodash.js"></script>
 
   <link rel="stylesheet" type="text/css" href="style.css">
 
 </head>
 <body>
 
+  <h1>FacePaint</h1>
+  <h2>Use your face to control the pointer and your emotions to give your drawings color!</h2>
 
   <div class="demo-frame">
     <div class="demo-container">
@@ -29,8 +31,14 @@
 
   <br>
 
+  <div id = "emoteDiv">
+    Your current emotion is: <span id = "currEmote"></span>
+  </div>
+
   <div id="app">
-    <canvas id="drawZone" style="border:1px solid #000000; margin-top: 0px; margin-left: 0px;">
+    <canvas id="drawZone" style="border:1px solid #000000; margin-top: 0px; margin-left: 0px;" width = "400" height = "300">
+    </canvas>
+    <canvas id="background" style="border:1px solid #000000; margin-top: 0px; margin-left: 0px;" width = "400" height = "300">
     </canvas>
   </div>
 
@@ -38,6 +46,7 @@
     var faceX;
     var faceY;
     var emotions;
+    var emote;
 
     window.onload = function() {
       new Main(document.body);
@@ -46,12 +55,20 @@
     function getX() {return faceX;}
     function getY() {return faceY;}
     function getEmotion() {
-      return Object.keys(emotions).reduce(function(a,b){return emotions[a] > emotions[b] ? a : b });
+      delete emotions["valence"];
+      delete emotions["engagement"];
+      var maxKey = Object.keys(emotions).reduce(function(a, b){ return emotions[a] > emotions[b] ? a : b });
+      return maxKey;
+    }
+
+    function getCurrentEmote() {
+      return emote;
     }
 
 
     class Main {
       constructor (parent) {
+        drawBackground();
         var video = document.getElementById('video');
         var canvas = document.getElementById('canvas');
         var context = canvas.getContext('2d');
@@ -62,33 +79,27 @@
         tracking.track('#video', tracker, { camera: true });
         tracker.on('track', function(event) {
           context.clearRect(0, 0, canvas.width, canvas.height);
-          event.data.forEach(function(rect) {
-            context.strokeStyle = '#a64ceb';
-            context.strokeRect(320 - rect.x - rect.width, rect.y, rect.width, rect.height);
-            context.font = '11px Helvetica';
-            context.fillStyle = "#fff";
-            //faceX = 220 - rect.x;
-            //faceY = rect.y;
-          });
+
         });
 
+
         var divRoot = $("#video")[0];
-        var w = 320;
-        var h = 240;
+        var w = 420;
+        var h = 340;
         var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
         var detector = new affdex.CameraDetector(divRoot, w, h, faceMode);
         detector.detectAllEmotions();
         detector.addEventListener("onImageResultsSuccess", function(faces, image, timestamp) {
           if(faces.length > 0){
-            emotions = JSON.stringify(faces[0].emotions);
+            emotions = faces[0].emotions;
             var nose = faces[0].featurePoints[12];
-            faceX = 320 - nose.x;
+            faceX = 420 - nose.x;
             faceY = nose.y - 50;
-            var emote = getEmotion();
-            console.log(emote);   
+            emote = getEmotion();
+            $("#currEmote").html(emote.toUpperCase());
           }
+          drawPointer();
 
-          drawBackground();
 
         });
         detector.start();
@@ -98,30 +109,41 @@
         tools.Erase = new EraseTool();
         tools.Spray = new SprayTool();
 
-        var canvas = elt("canvas", {id: "drawZone"});
+        //var canvas = elt("canvas", {id: "background"});
+        var canvas = document.getElementById("background");
+        canvas.width = 400;
+        canvas.height = 300;
         var cx = canvas.getContext("2d");
         var toolbar = elt("div", {class: "toolbar"}); 
         toolbar.appendChild (new ToolControl (cx).elt); 
-        toolbar.appendChild (new ColorControl (cx).elt); 
         toolbar.appendChild (new BrushControl (cx).elt);
         toolbar.appendChild (new EraseButton (cx).elt); 
 
         var panel = elt("div", {class: "picturepanel"}, canvas); 
         parent.appendChild(elt("div", null, panel, toolbar));
+        $("#clearButton").html("Clear Canvas");
       }
 
     };
 
     function drawBackground () {
-      var c = document.getElementById ("drawZone");
+      // Grey background
+      var c = document.getElementById ("background");
       var gc = c.getContext("2d");
 
-      // Grey background
       gc.fillStyle = "#EEEEEE";
       gc.fillRect (0, 0, c.width, c.height);
+
+    }
+
+    function drawPointer() {
+      var c = document.getElementById ("drawZone");
+      var gc = c.getContext("2d");   
+      gc.clearRect(0, 0, c.width, c.height);
+
       gc.fillStyle = "#000000"
       gc.beginPath();
-      gc.arc(faceX, faceY, 1, 0, 1*Math.PI);
+      gc.arc(faceX, faceY, pointerSize/2, 0, 2*Math.PI);
       gc.fillStyle = 'black';
       gc.fill();
       gc.closePath();

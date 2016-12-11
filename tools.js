@@ -1,5 +1,11 @@
 
 tools = {};
+var pointerSize = 2;
+
+
+function getPointerSize() {
+    return pointerSize;
+}
 
 /*
  * Buttons
@@ -22,21 +28,53 @@ class ToolControl {
     }
 }
 
-class ColorControl {
-    constructor (cx) {
-    var input = elt("input", {type: "color"});
+function generateColor(cx) {
+    if(emote == "anger") {
+        cx.fillStyle = "Red";
+        cx.strokeStyle = "Red";
+        //return "Red"
+    }
 
-    input.addEventListener("change", function() {
-        cx.fillStyle = input.value;
-        cx.strokeStyle = input.value;
-    });
+    else if(emote == "contempt") {
+        cx.fillStyle = "Purple";
+        cx.strokeStyle = "Purple";
+        //return "Purple"       
+    }
 
-    this.elt = elt ("span", null, "Color: ", input); 
+    else if(emote == "disgust") {
+        cx.fillStyle = "Green";
+        cx.strokeStyle = "Green";        
+        //return "Green"
+    }
+
+    else if(emote == "fear") {
+        cx.fillStyle = "Black";
+        cx.strokeStyle = "Black";        
+        //return "Black"
+    }
+
+    else if(emote == "joy") {
+        cx.fillStyle = "Yellow";
+        cx.strokeStyle = "Yellow";    
+        //return "Yellow"    
+    }
+
+    else if(emote == "sadness") {
+        cx.fillStyle = "Blue";
+        cx.strokeStyle = "Blue";       
+        //return "Blue"
+    }
+
+    else if(emote == "surprise") {
+        cx.fillStyle = "Orange";
+        cx.strokeStyle = "Orange";   
+        //return "Orange"    
     }
 }
 
 class BrushControl {
     constructor (cx) {
+
         var select = elt("select");
         var sizes = [1, 2, 3, 5, 8, 12, 25, 35, 50, 75, 100];
         sizes.forEach (function(size) {
@@ -46,6 +84,7 @@ class BrushControl {
 
         select.addEventListener("change", function() {
             cx.lineWidth = select.value;
+            pointerSize = select.value;
         });
 
         this.elt = elt("span", null, "Brush size: ", select); 
@@ -54,14 +93,12 @@ class BrushControl {
 
 class EraseButton {
     constructor (cx) {
-        var erase = elt("button");
-
+        var erase = elt("button", {id: "clearButton"});
         erase.addEventListener("click", function() {
-            console.log("wew");
             cx.clearRect(0, 0, canvas.width, canvas.height);
         });
 
-        this.elt = elt("span", null, "Clear", erase);
+        this.elt = elt("span", null, "  ", erase);
     }
 
 }
@@ -93,6 +130,9 @@ class LineTool extends Tool {
 
         var pos = Tool.relativePos (event, cx.canvas);
         this.trackDrag(function(event) { 
+            generateColor(cx);
+            //cx.fillStyle = generateColor(cx);
+            //cx.strokeStyle = generateColor(cx);
             cx.beginPath(); 
             cx.moveTo(pos.x, pos.y); 
             pos = Tool.relativePos(event, cx.canvas); 
@@ -111,16 +151,6 @@ class EraseTool extends Tool {
     }
 }
 
-class TextTool extends Tool {
-    down (event, cx) {
-        var text = prompt("Text:", "");
-        if (text) {
-            var pos = Tool.relativePos(event, cx.canvas);
-            cx.font = Math.max(7, cx.lineWidth) + "px sans-serif";
-            cx.fillText(text, pos.x, pos.y);
-        }
-    }
-}
 
 class SprayTool extends Tool {
     down (event, cx) {
@@ -132,12 +162,14 @@ class SprayTool extends Tool {
         var spray = setInterval(function() {
             for (var i = 0; i < dotsPerTick; i++) {
             var offset = SprayTool.randomPointInRadius(radius);
+            generateColor(cx);
             cx.fillRect(currentPos.x + offset.x,
                     currentPos.y + offset.y, 1, 1);
             }
         }, 25);
 
         this.trackDrag (function(event) {
+            generateColor(cx);
             currentPos = Tool.relativePos(event, cx.canvas);
         }, function() {
             clearInterval(spray);
