@@ -4,44 +4,37 @@
   <!-- Based on https://trackingjs.com/examples/face_camera.html -->
   
   <meta charset="utf-8">
-  <title>Program that uses tracking.js to track face with camera</title>
+  <title>FacePaint</title>
 
   <!-- Must download trackingjs files from https://trackingjs.com and put them where these 'script src=' statements will find them. -->
   <script src="./tracking.js-master/build/tracking-min.js"></script>
   <script src="./tracking.js-master/build/data/face-min.js"></script>
+  <script src="./tools.js"></script>
 
-  <style>
-  video, canvas {
-    margin-left: 230px;
-    margin-top: 120px;
-    position: absolute;
-  }
-  </style>
+  <link rel="stylesheet" type="text/css" href="style.css">
 
 </head>
 <body>
-  <div class="demo-title">
-    <p><a href="http://trackingjs.com" target="_parent">tracking.js</a> － get user's webcam and detect faces</p>
-  </div>
-
    <div id="result">
           (no data yet)
     </div>
 
   <div class="demo-frame">
     <div class="demo-container">
-      <video id="video" width="320" height="240" preload autoplay loop muted></video>
       <canvas id="canvas" width="320" height="240"></canvas>
+            <video id="video" width="320" height="240" preload autoplay loop muted></video>
     </div>
+  </div>
+
+  <div class="webcam-vid">
   </div>
 
   <br>
 
-  <div id = "literallyNothing"> </div>
-
-  <canvas id="drawZone" style="border:1px solid #000000; margin-top: 0px; margin-left: 0px;">
-
-  </canvas>
+  <div id="app">
+    <canvas id="drawZone" style="border:1px solid #000000; margin-top: 0px; margin-left: 0px;">
+    </canvas>
+  </div>
 
   <script>
   /*
@@ -56,6 +49,14 @@
     var faceY;
 
     window.onload = function() {
+      new Main(document.body);
+    }
+
+    function getX() {return faceX;}
+    function getY() {return faceY;}
+
+    class Main {
+      constructor (parent) {
       var video = document.getElementById('video');
       var canvas = document.getElementById('canvas');
       var context = canvas.getContext('2d');
@@ -68,21 +69,33 @@
         context.clearRect(0, 0, canvas.width, canvas.height);
         event.data.forEach(function(rect) {
           context.strokeStyle = '#a64ceb';
-          context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+          context.strokeRect(320 - rect.x - rect.width, rect.y, rect.width, rect.height);
           context.font = '11px Helvetica';
           context.fillStyle = "#fff";
-          context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
-          context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
-          faceX = rect.x;
+          faceX = 220 - rect.x;
           faceY = rect.y;
           drawBackground();
-          console.log("We out here");
 	     document.getElementById("result").innerHTML = "Face at " + (rect.x + rect.width/2) + ", " + (rect.y + rect.height/2)});});
 
+      tools.Line = new LineTool();
+      tools.Erase = new EraseTool();
+      tools.Spray = new SprayTool();
+
+      var canvas = elt("canvas", {id: "drawZone"});
+      var cx = canvas.getContext("2d");
+      var toolbar = elt("div", {class: "toolbar"}); 
+      toolbar.appendChild (new ToolControl (cx).elt); 
+      toolbar.appendChild (new ColorControl (cx).elt); 
+      toolbar.appendChild (new BrushControl (cx).elt);
+      toolbar.appendChild (new EraseButton (cx).elt); 
+
+      var panel = elt("div", {class: "picturepanel"}, canvas); 
+      parent.appendChild(elt("div", null, panel, toolbar));
+      }
 
     };
 
-
+/*
     function doit (event) {
       // Show coordinates
       //document.getElementById("showcoords").innerHTML =
@@ -94,10 +107,11 @@
       var gc = c.getContext("2d");
       gc.fillStyle = "#FF0000";
       gc.beginPath();
-      gc.arc (event.clientX, event.clientY, 20, 0, 2.*Math.PI);
+      gc.arc (event.clientX, event.clientY, 20, 0, 2*Math.PI, false);
       gc.fill();
+      gc.closePath();
 
-    }
+    }*/
 
     // Just a common code fragment, not a genuine repaint callback,
     // redraws the non-changeable stuff
@@ -110,7 +124,12 @@
       gc.fillRect (0, 0, c.width, c.height);
 
       gc.fillStyle = "#000000"
-      gc.fillRect(faceX, faceY, 100, 100);
+      //gc.fillRect(faceX, faceY, 100, 100);
+      gc.beginPath();
+      gc.arc(faceX, faceY, 1, 0, 1*Math.PI);
+      gc.fillStyle = 'black';
+      gc.fill();
+      gc.closePath();
 
     }
 

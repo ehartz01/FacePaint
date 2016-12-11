@@ -1,0 +1,28 @@
+  video, canvas {
+    margin-left: 930px;
+    margin-top: 120px;
+    position: absolute;
+  }
+
+  #video
+  {
+      transform: rotateY(180deg);
+      -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+      -moz-transform:rotateY(180deg); /* Firefox */
+  }
+
+  #app > canvas {
+    width: 800px;
+    height: 500px;
+  }
+
+  .toolbar {
+    padding-top: 500px;
+  }
+
+  #drawZone {
+    margin-top: 0px;
+    margin-left: 0px;
+    width: 800px;
+    height: 500px;
+  }
