@@ -186,12 +186,6 @@ class SprayTool extends Tool {
     }
 }
 
-
-/*
- * Utility function: creates a new DOM element with specified name and
- * attributes and appends all further arguments it gets as child nodes,
- * automatically converting strings to text nodes.
- */
 function elt(name, attributes) { 
   var node = document.createElement(name); 
   if (attributes) {
