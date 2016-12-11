@@ -11,6 +11,13 @@
       -moz-transform:rotateY(180deg); /* Firefox */
   }
 
+  #drawZone {
+    margin-top: 0px;
+    margin-left: 0px;
+    width: 800px;
+    height: 500px;
+  }
+  
   #app > canvas {
     width: 800px;
     height: 500px;
@@ -20,9 +27,3 @@
     padding-top: 500px;
   }
 
-  #drawZone {
-    margin-top: 0px;
-    margin-left: 0px;
-    width: 800px;
-    height: 500px;
-  }
